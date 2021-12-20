@@ -1,51 +1,49 @@
-import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Spinner } from '../../../components/Spinner'
 import { PostAuthor } from './PostAuthor'
 import { TimeAgo } from './TimeAgo'
 import { ReactionButtons } from './ReactionButtons'
-import { fetchPosts, selectPostIds, selectPostById } from '../posts/postsSlice'
+import { useGetPostsQuery } from '../api/apiSlice'
 
-const PostExcerpt = React.memo(({ postId }) => {
-  const post = useSelector((state) => selectPostById(state, postId))
-  return (
-    <article className="post-excerpt" key={post.id}>
-      <h3>{post.title}</h3>
-      <p className="post-content">{post.content.substring(0, 100)}</p>
-      <div>
-        <PostAuthor userId={post.user} />
-        <TimeAgo timestamp={post.date} />
-      </div>
-      <Link to={`/posts/${post.id}`} className="button muted-button">
-        View Post
-      </Link>
-      <ReactionButtons post={post} />
-    </article>
-  )
-})
+const PostExcerpt = React.memo(({ post }) => (
+  <article className="post-excerpt" key={post.id}>
+    <h3>{post.title}</h3>
+    <p className="post-content">{post.content.substring(0, 100)}</p>
+    <div>
+      <PostAuthor userId={post.user} />
+      <TimeAgo timestamp={post.date} />
+    </div>
+    <Link to={`/posts/${post.id}`} className="button muted-button">
+      View Post
+    </Link>
+    <ReactionButtons post={post} />
+  </article>
+))
 
 export const PostList = () => {
-  const dispatch = useDispatch()
-  const posts = useSelector(selectPostIds)
-  const postStatus = useSelector((state) => state.posts.status)
-  const postError = useSelector((state) => state.posts.error)
-
-  useEffect(() => {
-    if (postStatus === 'idle') {
-      dispatch(fetchPosts())
-    }
-  }, [postStatus, dispatch])
-
+  const {
+    data: posts = [],
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetPostsQuery()
+  const sortedPosts = useMemo(() => {
+    const sortedPosts = posts.slice()
+    // Sort posts in descending chronological order
+    sortedPosts.sort((a, b) => b.date.localeCompare(a.date))
+    return sortedPosts
+  }, [posts])
   let content
-  if (postStatus === 'loading') {
+  if (isLoading) {
     content = <Spinner text="loading..." />
-  } else if (postStatus === 'success') {
-    content = posts.map((postId) => (
-      <PostExcerpt postId={postId} key={postId} />
+  } else if (isSuccess) {
+    content = sortedPosts.map((post) => (
+      <PostExcerpt post={post} key={post.id} />
     ))
-  } else if (postStatus === 'failed') {
-    content = <div>{postError}</div>
+  } else if (isError) {
+    content = <div>{error}</div>
   }
 
   return (
