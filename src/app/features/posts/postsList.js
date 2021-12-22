@@ -5,6 +5,7 @@ import { PostAuthor } from './PostAuthor'
 import { TimeAgo } from './TimeAgo'
 import { ReactionButtons } from './ReactionButtons'
 import { useGetPostsQuery } from '../api/apiSlice'
+import classnames from 'classnames'
 
 const PostExcerpt = React.memo(({ post }) => (
   <article className="post-excerpt" key={post.id}>
@@ -24,10 +25,12 @@ const PostExcerpt = React.memo(({ post }) => (
 export const PostList = () => {
   const {
     data: posts = [],
+    isFetching,
     isLoading,
     isSuccess,
     isError,
     error,
+    refetch,
   } = useGetPostsQuery()
   const sortedPosts = useMemo(() => {
     const sortedPosts = posts.slice()
@@ -39,9 +42,13 @@ export const PostList = () => {
   if (isLoading) {
     content = <Spinner text="loading..." />
   } else if (isSuccess) {
-    content = sortedPosts.map((post) => (
+    const renderedPosts = sortedPosts.map((post) => (
       <PostExcerpt post={post} key={post.id} />
     ))
+    const containerClassName = classnames('posts-container', {
+      disabled: isFetching,
+    })
+    content = <div className={containerClassName}>{renderedPosts}</div>
   } else if (isError) {
     content = <div>{error}</div>
   }
@@ -49,6 +56,7 @@ export const PostList = () => {
   return (
     <section className="posts-list">
       <h2>Posts</h2>
+      <button onClick={refetch}>Refetch Posts</button>
       {content}
     </section>
   )
