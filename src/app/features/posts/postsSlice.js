@@ -5,6 +5,7 @@ import {
   createEntityAdapter,
 } from '@reduxjs/toolkit'
 import { client } from '../../../api/client'
+import { apiSlice } from '../api/apiSlice'
 
 const postsAdapter = createEntityAdapter({
   sortComparer: (a, b) => b.date.localeCompare(a.date),
@@ -97,13 +98,15 @@ const postsSlice = createSlice({
 /**
  * selectors
  */
-export const {
-  selectAll: selectAllPosts,
-  selectById: selectPostById,
-  selectIds: selectPostIds,
-} = postsAdapter.getSelectors((state) => state.posts)
+export const { selectById: selectPostById, selectIds: selectPostIds } =
+  postsAdapter.getSelectors((state) => state.posts)
+export const selectAllPostsResult = apiSlice.endpoints.getPosts.select()
+export const selectAllPosts = createSelector(
+  selectAllPostsResult,
+  (postsResult) => postsResult?.data ?? []
+)
 export const selectPostsByUser = createSelector(
-  [selectAllPosts],
+  selectAllPosts,
   (state, userId) => userId,
   (posts, userId) => posts.filter((post) => post.user === userId)
 )

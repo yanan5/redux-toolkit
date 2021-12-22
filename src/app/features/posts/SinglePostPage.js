@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { PostAuthor } from './PostAuthor'
 import { ReactionButtons } from './ReactionButtons'
-import { selectPostById } from '../posts/postsSlice'
 import { useGetPostQuery } from '../api/apiSlice'
 import { Spinner } from '../../../components/Spinner'
 export const SinglePostPage = ({ match }) => {
