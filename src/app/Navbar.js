@@ -2,17 +2,20 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import {
-  fetchNotifications,
-  selectAllNotifications,
+  fetchNotificationsWebsocket,
+  selectNotificationsMetadata,
+  useGetNotificationsQuery,
 } from '../app/features/notifications/notificationSlice'
 
 export const Navbar = () => {
   const dispatch = useDispatch()
-  const fetchNewNotifications = () => {
-    dispatch(fetchNotifications())
-  }
-  const notifications = useSelector(selectAllNotifications)
+  useGetNotificationsQuery()
+
+  const notifications = useSelector(selectNotificationsMetadata)
   const numUnreadNotifications = notifications.filter((n) => !n.read).length
+  const fetchNewNotifications = () => {
+    dispatch(fetchNotificationsWebsocket())
+  }
   let unreadNotificationsBadge
 
   if (numUnreadNotifications > 0) {
